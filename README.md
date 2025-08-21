@@ -2,15 +2,13 @@
 
 ## About
 
-The dochelper.ai is tool using ai to make simple final user search info on your website or documentation from your product. But is not only good to 
-the final user is simply to the company add new info to the AI about new products, features or extra info.
+The dochelper.ai is a tool using ai to make simple final user search info on your website or documentation from your product. But it is not only good for the final user, it is simply for the company to add new info to the AI about new products, features or extra info.
 
 ## Use case
 
-- Documentation from your production
+- Documentation from your project or prodocut
 - Chatbot agent to answer common question about the production on Website
-- Chatbot agent to help the internal team from the company. PS: propability you know or you are a guy has a specific knowledge about some process or wait to execute
-  something, so you can transfer that knowledge to chatbot that way you don't need to bottle or lose time wait the person answer some.
+- Chatbot agent to help the internal team from the company. PS: probability you know or you are a guy who has a specific knowledge about some process or wait to execute something, so you can transfer that knowledge to chatbot that way you don't need to bottle or lose time waiting for the person to answer some.
 
 ## Technologies:
 
