@@ -1,0 +1,1462 @@
+{
+  "name": "Dochelper - Simple chatbot support - AI + RAG + Firecrawl",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        1020
+      ],
+      "id": "a5252ed0-2e63-4b8c-b2c2-c4b119938c8f",
+      "name": "When chat message received",
+      "webhookId": "84473a69-c9c6-492e-9233-73408c648609"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are a concise and professional coding assistant. Your purpose is to provide clear, accurate, and helpful code tips.\n\n**Core Rules:**\n* **Be Direct:** Focus exclusively on the user's coding question or issue.\n* **Be Polite & Empathetic:** Maintain a respectful and professional tone.\n* **Be Accurate:** All code and explanations must be correct.\n\n**If you know the answer:**\n* Provide a clear and concise explanation.\n* Include relevant code examples with proper formatting (e.g., Markdown code blocks).\n* Structure your response with a simple, step-by-step breakdown if the solution is complex.\n* After providing the solution, politely ask a follow-up question to ensure the user's needs are met, such as, \"Does this resolve your issue, or would you like to explore other options?\"\n\n**If you don't know the answer:**\n* Politely and directly state that you do not have the information. Use a phrase like, \"I'm sorry, but I don't have the specific information you're looking for.\"\n* Do not offer a guess or a potentially incorrect solution.\n* Ask if the user would like to try a different query.\n\n**Never:**\n* Go off-topic or include unrelated information.\n* Engage in small talk.\n* Use emojis unless specifically requested by the user.\n\n**Always end your response with a clear and concise offer of further help.** A good example is: \"Is there anything else I can assist you with regarding your code?\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        180,
+        1020
+      ],
+      "id": "9487b878-1114-4b11-bb66-32c5c30bed12",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "map",
+        "url": "={{ $json['Link '] }}",
+        "sitemapOnly": true,
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        60,
+        -1220
+      ],
+      "id": "e1213087-4d86-4aa9-ae2c-affd2f535265",
+      "name": "Firecrawl",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "eiMU3hctxwCrDwYq",
+          "name": "Firecrawl account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.2,
+      "position": [
+        2100,
+        -1180
+      ],
+      "id": "1c53db66-f79a-4343-a84d-e803bc00551d",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SoEeWvpXYIeudr8A",
+          "name": "Track token usage - dev"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "stripNewLines": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2020,
+        -1000
+      ],
+      "id": "69a3c558-368f-47c4-bce6-eb2ae402f356",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.data.markdown }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        -960
+      ],
+      "id": "8513cacc-cdde-492d-933f-8f7a4861000a",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        2260,
+        -820
+      ],
+      "id": "5c021d33-16e1-4d93-9884-c1e2842eb03f",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        280,
+        1240
+      ],
+      "id": "32d44b19-3e41-40d9-9eff-4b7c366ee800",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "faq_bot",
+        "toolDescription": "Reponsible to anskwer question about the n8n. Any question about the N8N that tool needs to answer.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 8,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.2,
+      "position": [
+        460,
+        1220
+      ],
+      "id": "e3c81321-390f-4ba7-af44-7e6451916986",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SoEeWvpXYIeudr8A",
+          "name": "Track token usage - dev"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        1440
+      ],
+      "id": "3b9fe968-db02-498a-9c34-ae02b15d68be",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "options": {
+          "maxTokens": 1000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        1240
+      ],
+      "id": "f4a35a1e-6fb7-4f37-9790-72b092a313f4",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "={{ $('Set link').item.json.link }}",
+        "scrapeOptions": {
+          "options": {
+            "headers": {}
+          }
+        },
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        -1180
+      ],
+      "id": "90b0b296-80e1-4dfc-9ec2-0b93f08cb984",
+      "name": "Firecrawl2",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "eiMU3hctxwCrDwYq",
+          "name": "Firecrawl account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        900,
+        -1220
+      ],
+      "id": "399a381e-73cf-4eb5-bf37-ce1fc30c539e",
+      "name": "Loop Over Items1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "links",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -1220
+      ],
+      "id": "10d44379-438c-4b81-8fc7-15f1f82ff2bc",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3afc4415-e071-4c26-b9ea-2aaf53b05e42",
+              "name": "link",
+              "value": "={{ $json.links }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1240,
+        -1200
+      ],
+      "id": "0094be10-8843-4941-8342-08337d6a46c3",
+      "name": "Set link"
+    },
+    {
+      "parameters": {
+        "operationMode": "nodeInputBinary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainSummarization",
+      "typeVersion": 2.1,
+      "position": [
+        -20,
+        -880
+      ],
+      "id": "952dcefd-4ad8-4eb4-acfa-e972974bcc15",
+      "name": "Summarization Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini-2025-04-14",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini-2025-04-14"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        60,
+        -660
+      ],
+      "id": "0d94130b-e0aa-40ff-b200-122c0e5128e6",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        -880
+      ],
+      "id": "6628ff95-fdfc-43e9-b4bc-99b556e7c66c",
+      "name": "Supabase Vector Store2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SoEeWvpXYIeudr8A",
+          "name": "Track token usage - dev"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "stripNewLines": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        -700
+      ],
+      "id": "59013e06-7063-4b91-9565-8fdce89e3420",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.output.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -660
+      ],
+      "id": "c4389757-b2a1-404e-971f-d43a36e86e81",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        900,
+        -520
+      ],
+      "id": "ee22206a-6c9d-4de6-aba7-0ed18ce4e5f3",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        -200
+      ],
+      "id": "4691a6aa-4dd1-4210-a4f0-bf139a46062b",
+      "name": "Supabase Vector Store3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SoEeWvpXYIeudr8A",
+          "name": "Track token usage - dev"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "stripNewLines": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        580,
+        -20
+      ],
+      "id": "63e8d61e-0b0f-464f-9c94-c278a7bdf9fd",
+      "name": "Embeddings OpenAI3",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.data.markdown || $json.data.data[0].markdown }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        800,
+        20
+      ],
+      "id": "dcac95ac-811c-43d3-995a-fb45b64ae11e",
+      "name": "Default Data Loader2"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        900,
+        160
+      ],
+      "id": "9945538a-b3a7-4d10-9e82-d4da51d7a277",
+      "name": "Recursive Character Text Splitter2"
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload documents",
+        "formDescription": "The form is focus to upload documents and save knowledge base.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Link",
+              "placeholder": "https://instagram.com.br",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Info will be processed and save on database"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -340,
+        -220
+      ],
+      "id": "e63be852-8710-49c6-988f-026c62cc331a",
+      "name": "Form link",
+      "webhookId": "9f8a5f09-55e1-412a-80f7-ea04a8b1248e"
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "={{ $json.Link }}",
+        "scrapeOptions": {
+          "options": {
+            "onlyMainContent": false,
+            "headers": {}
+          }
+        },
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -220
+      ],
+      "id": "4e27b77a-d69a-43f9-b85c-fb8abcbe7102",
+      "name": "Firecrawl3",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "eiMU3hctxwCrDwYq",
+          "name": "Firecrawl account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.2,
+      "position": [
+        760,
+        360
+      ],
+      "id": "9020825e-7632-43c9-bfae-ebd30c809647",
+      "name": "Supabase Vector Store4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SoEeWvpXYIeudr8A",
+          "name": "Track token usage - dev"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "stripNewLines": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        600,
+        540
+      ],
+      "id": "92eb57de-196d-4bff-8eb8-a89750c3f5a3",
+      "name": "Embeddings OpenAI4",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.Description }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        820,
+        580
+      ],
+      "id": "f8e2b013-db7e-4f6b-8fbf-118c21d1e6d1",
+      "name": "Default Data Loader3"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        920,
+        720
+      ],
+      "id": "2fef63f2-4e89-4b8d-89fc-1134b97cae91",
+      "name": "Recursive Character Text Splitter3"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2400,
+        -1420
+      ],
+      "id": "49a69b20-7be4-4271-80d1-4207b2c43b02",
+      "name": "Wait1",
+      "webhookId": "069e4ad6-d067-47f1-b284-d841251d24ba"
+    },
+    {
+      "parameters": {
+        "content": "## Setup Supabase vector db\n- Access Supabase account\n- Execute sql to create index on database:\n```sql\n-- SET maintenance_work_mem TO '64MB';\n-- CREATE INDEX ON documents USING ivfflat(embedding vector_l2_ops) WITH (lists = 100);\n\n```\n- Execute sql below on sql editor:\n```sql\ncreate extension vector;\n-- Create a table to store your documents\ncreate table documents (\n  id bigserial primary key,\n  content text, -- corresponds to Document.pageContent\n  metadata jsonb, -- corresponds to Document.metadata\n  embedding vector(1536) -- 1536 works for OpenAI embeddings, change if needed\n);\n\n-- Create a function to search for documents\ncreate function match_documents (\n  query_embedding vector(1536),\n  match_count int default null,\n  filter jsonb DEFAULT '{}'\n) returns table (\n  id bigint,\n  content text,\n  metadata jsonb,\n  similarity float\n)\nlanguage plpgsql\nas $$\n#variable_conflict use_column\nbegin\n  return query\n  select\n    id,\n    content,\n    metadata,\n    1 - (documents.embedding <=> query_embedding) as similarity\n  from documents\n  where metadata @> filter\n  order by documents.embedding <=> query_embedding\n  limit match_count;\nend;\n$$;\n```",
+        "height": 740,
+        "width": 660
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1180,
+        -1540
+      ],
+      "id": "74c1a888-d13a-44fb-b053-f71fb9656083",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## How add chatbot on Website\n- Click on chat trigger to get 'Chat url'\n- Add the code below on your website:\n```html\n<script type=\"module\">\n        import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';\n\n        createChat({\n            webhookUrl: \"chat_url_value_here\"\n        });\n    </script>   \n```",
+        "height": 320,
+        "width": 620
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1860,
+        -1540
+      ],
+      "id": "4098d9f2-38ca-43f9-9c42-273028598c5a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Services required\n- Supabase(Rag)\n- Firecrawl(https://www.firecrawl.dev/)\n- Open AI\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -1540
+      ],
+      "id": "e74e5a5d-36fd-4e0d-85ed-d37026ec186c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Map website link to generate the RAG e save on database\n",
+        "height": 300,
+        "width": 3000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        -1340
+      ],
+      "id": "f0d919c2-c3d9-42f3-8a36-468b8be4b9d1",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Generate RAG from PDF e save on database\n",
+        "height": 580,
+        "width": 3000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        -960
+      ],
+      "id": "1e690ed1-4e13-409e-affa-c792900223e4",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload documents",
+        "formDescription": "The form is focus to upload documents and save knowledge base.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Document(PDF)",
+              "fieldType": "file",
+              "acceptFileTypes": "pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -340,
+        -900
+      ],
+      "id": "5f1fc5ed-d3ea-4ee5-a1e5-99c33d286e68",
+      "name": "Upload PDF",
+      "webhookId": "78c97682-7657-4405-a3ae-e1a2542d3b09"
+    },
+    {
+      "parameters": {
+        "content": "## Generate RAG from link e save on database\n",
+        "height": 580,
+        "width": 3000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -300
+      ],
+      "id": "ebafbf4d-4de5-4a9e-ad2b-513b8787eeb3",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload documents",
+        "formDescription": "The form is focus to upload documents and save knowledge base.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Description",
+              "fieldType": "textarea",
+              "placeholder": "Info here to add",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Info will be processed and save on database"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -200,
+        480
+      ],
+      "id": "315eab5c-4762-48bc-803c-fce3416fff31",
+      "name": "Form TEXT",
+      "webhookId": "a784e6be-ce3a-41f2-8089-2a18428d1f8f"
+    },
+    {
+      "parameters": {
+        "content": "## Generate RAG from text e save on database\n",
+        "height": 580,
+        "width": 3000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        300
+      ],
+      "id": "42178d17-07e8-4c3d-9008-1dd421464e3b",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Chatbot consume data from database and return a answer to the end user\n",
+        "height": 580,
+        "width": 3000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        940
+      ],
+      "id": "4aadd715-ed52-49fd-bb2d-e60e70716136",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput || $json.text }}",
+        "options": {
+          "systemMessage": "=You are a concise and professional coding assistant. Your purpose is to provide clear, accurate, and helpful code tips.\n\n**Core Rules:**\n* **Be Direct:** Focus exclusively on the user's coding question or issue.\n* **Be Polite & Empathetic:** Maintain a respectful and professional tone.\n* **Be Accurate:** All code and explanations must be correct.\n\n**If you know the answer:**\n* Provide a clear and concise explanation.\n* Include relevant code examples with proper formatting (e.g., Markdown code blocks).\n* Structure your response with a simple, step-by-step breakdown if the solution is complex.\n* After providing the solution, politely ask a follow-up question to ensure the user's needs are met, such as, \"Does this resolve your issue, or would you like to explore other options?\"\n\n**If you don't know the answer:**\n* Politely and directly state that you do not have the information. Use a phrase like, \"I'm sorry, but I don't have the specific information you're looking for.\"\n* Do not offer a guess or a potentially incorrect solution.\n* Ask if the user would like to try a different query.\n\n**Never:**\n* Go off-topic or include unrelated information.\n* Engage in small talk.\n* Use emojis unless specifically requested by the user.\n\n**Always end your response with a clear and concise offer of further help.** A good example is: \"Is there anything else I can assist you with regarding your code?\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        340,
+        1720
+      ],
+      "id": "fb595ac9-3d97-4d8d-8863-fe8b4d8c8afa",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId || $json.message.from.id  }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        440,
+        1940
+      ],
+      "id": "64ee179d-d94b-4398-9f2b-cb20280ace0c",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "faq_bot",
+        "toolDescription": "Reponsible to anskwer question about the n8n. Any question about the N8N that tool needs to answer.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 8,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.2,
+      "position": [
+        620,
+        1920
+      ],
+      "id": "189cc7df-6697-41a4-848d-21dc7974f888",
+      "name": "Supabase Vector Store5",
+      "credentials": {
+        "supabaseApi": {
+          "id": "SoEeWvpXYIeudr8A",
+          "name": "Track token usage - dev"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        600,
+        2140
+      ],
+      "id": "390bdf39-ec32-4d26-a832-ca4797730667",
+      "name": "Embeddings OpenAI5",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        300,
+        1940
+      ],
+      "id": "c36b2294-f111-470b-bdf7-f20ca38d14de",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "bWKIDas8pN9YKmLh",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "5bec074f-ad76-4142-892b-12f579664c6f",
+      "name": "Listen for incoming events",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -300,
+        1720
+      ],
+      "webhookId": "f1e34369-4e22-4659-9cfa-b837d5f8e65f",
+      "typeVersion": 1,
+      "credentials": {
+        "telegramApi": {
+          "id": "rxtXyqgKT9iBGLxT",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "text",
+              "stringValue": "={{ $('Listen for incoming events').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f40bbb92-5383-4d85-b054-2e9c4bfc9b14",
+      "name": "Voice or Text1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        20,
+        1720
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Voice or Text1').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        700,
+        1720
+      ],
+      "id": "f9eea33e-45e8-4597-98b6-f202deb1ca85",
+      "name": "Telegram",
+      "webhookId": "c11a142f-e13c-473a-a58b-38316f22feba",
+      "credentials": {
+        "telegramApi": {
+          "id": "rxtXyqgKT9iBGLxT",
+          "name": "Tiago - english language tutor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Telegram chatbot consume data from database and return a answer to the end user\n",
+        "height": 760,
+        "width": 3000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        1580
+      ],
+      "id": "d98f60aa-df3c-4bad-b1bd-83c65ca48fbd",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload documents",
+        "formDescription": "The form is focus to upload documents and save knowledge base.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Link ",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -380,
+        -1220
+      ],
+      "id": "f9f3950b-ee1f-49ea-baad-11c7dd21d28d",
+      "name": "Form to map links",
+      "webhookId": "f1f8aadd-bfd3-4e79-bd7c-c6e68fad3faf"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl2": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Set link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set link": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarization Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarization Chain": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI3": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store3",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader2": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store3",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter2": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader2",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form link": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl3": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI4": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store4",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader3": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store4",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter3": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader3",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF": {
+      "main": [
+        [
+          {
+            "node": "Summarization Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form TEXT": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store5": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI5": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store5",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listen for incoming events": {
+      "main": [
+        [
+          {
+            "node": "Voice or Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice or Text1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form to map links": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6fffacab-202c-4336-9ec5-c659ce8e03ea",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4e48073067c98941c0e9b86013547195208bc911ff861b585319d831d7845256"
+  },
+  "id": "uKxksetiP7PX1RbF",
+  "tags": []
+}
